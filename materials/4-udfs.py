@@ -20,7 +20,7 @@ cars_df = spark.read.json("../data/cars")
 # used for executing transformations that the native Spark DF/SQL API doesn't support
 
 # example:
-# car names are all lowercase, we'd like the names to be "official", i.e. capital letters on new words
+# car names are all lowercase, we'd like the names to be "official", i.e. capital letters on all words
 def convert_case(name):
     arr = name.split(" ")
     return " ".join([x[0].upper() + x[1:] for x in arr if len(x) > 0])

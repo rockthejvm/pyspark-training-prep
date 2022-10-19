@@ -101,7 +101,7 @@ if __name__ == "__main__":
         2. Create another column summing up the total profit of the movies = US_Gross + Worldwide_Gross + DVD sales
         3. Select all COMEDY movies with IMDB rating above 6
 
-        Use as many versions as possible
+        Use as many versions as possible (hints: expr, operators on col objects)
     """
 
     # -- load
@@ -404,7 +404,6 @@ if __name__ == "__main__":
     # -- 1
     maxSalariesPerEmpNoDF = salaries_df.groupBy("emp_no").agg(max("salary").alias("maxSalary"))
     employeesSalariesDF = employees_df.join(maxSalariesPerEmpNoDF, "emp_no")
-    employeesSalariesDF
 
     # -- 2
 
