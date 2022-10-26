@@ -1,6 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 
+# save 30 mins at the end of tomorrow for foundry
+
 # [1] add postgres jar
 spark = SparkSession \
     .builder \

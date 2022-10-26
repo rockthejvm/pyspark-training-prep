@@ -13,6 +13,9 @@ spark = SparkSession \
 
 sc = spark.sparkContext
 
+# TODO make sure MEMORY ONLY means deserialized
+# TODO in the case of MEMORY_AND_DISK cached DFs if they are stored on disk, can they be promoted to memory?
+
 # memory architecture
 # [code] caching & checkpointing
 def demo_caching():
@@ -32,6 +35,7 @@ def demo_caching():
         StorageLevel.MEMORY_ONLY # cache the DF in memory EXACTLY - CPU efficient, memory expensive
         # StorageLevel.DISK_ONLY # cache the DF to DISK - CPU efficient and mem efficient, but slower
         # StorageLevel.MEMORY_AND_DISK # cache this DF to both the heap AND the disk - first caches to memory, but if the DF is EVICTED, will be written to disk
+        # StorageLevel.MEMORY_AND_DISK_DESER # deserialized (raw) data
 
         # replication:
         # StorageLevel.MEMORY_ONLY_2 # memory only, replicated twice - for resiliency, 2x memory usage
