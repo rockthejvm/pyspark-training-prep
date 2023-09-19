@@ -106,8 +106,3 @@ def demo_with_numerical_df():
 
 if __name__ == '__main__':
     demo_udaf()
-
-
-from pyspark.storagelevel import StorageLevel
-
-StorageLevel.DISK_ONLY_3
