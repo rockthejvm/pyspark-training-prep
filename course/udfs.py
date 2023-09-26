@@ -27,3 +27,5 @@ car_names_formatted_df = cars_df.select(convert_case_udf(col("Name")).alias("Bet
 
 if __name__ == '__main__':
     car_names_formatted_df.show()
+
+
