@@ -257,6 +257,8 @@ def joins_exercise_peter():
     employee_salary = employees_df.alias("employee_df").join(salaries_df.alias("salary_df"), "emp_no", "inner") \
         .groupby("employee_df.emp_no") \
         .max("salary_df.salary")
+
 # narrow and wide transformations
+
 if __name__ == '__main__':
-    pass
+    transfer_table("employees").write.option("compression", "snappy").save("../data/employees")
