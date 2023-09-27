@@ -98,3 +98,19 @@ def solutions_shree():
 
 if __name__ == '__main__':
     solutions_shree()
+
+
+"""
+    financial_performance(dept_no, profit)
+    
+    departments
+    dept_emp
+    
+    count_by_dept = deparments.join(dept_emp, "dept_no") => employee numbers for every department
+        .groupBy("dept_no")
+        .count() // (dept_no, count_of_employees)
+        
+    count_by_dept.join(financial_performance, "dept_no")
+    |||||||||||||      ^^^^^^^^^^^^^^^^^^^^^ was not partitioned by dept_no, it will be shuffled!
+    ^^^^^^^^^^^^^ already partitioned by dept_no, not to be shuffled again!
+"""
