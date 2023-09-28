@@ -212,7 +212,7 @@ if __name__ == "__main__":
     # reading a DF from a JDBC table
     # [1] add the postgres jar in the SparkSession
     driver = "org.postgresql.Driver"
-    url = "jdbc:postgresql://localhost:5432/rtjvm"
+    url = "jdbc:postgresql://localhost:5443/rtjvm"
     user = "docker"
     password = "docker"
 
@@ -329,9 +329,9 @@ if __name__ == "__main__":
     averages_per_director = movies_df \
         .groupBy("Director") \
         .agg(
-        avg("IMDB_Rating").alias("Avg_Rating"),
-        sum("US_Gross").alias("Total_US_Gross")
-    ) \
+            avg("IMDB_Rating").alias("Avg_Rating"),
+            sum("US_Gross").alias("Total_US_Gross")
+        ) \
         .orderBy(col("Avg_Rating").desc_nulls_last())
 
     ############################################################
@@ -380,7 +380,7 @@ if __name__ == "__main__":
         1. show all employees and their max salary (all time)
         2. show all employees who were never managers
         3. for each employee, find the difference 
-            between their own latest salary and the max salary of their job/department
+            between their own latest salary and the max salary of their department
     """
 
 
@@ -431,7 +431,9 @@ if __name__ == "__main__":
         .groupBy("dept_no") \
         .agg(max("salary").alias("max_salary"))
 
-    # select emp_no, max(from_date) date from salaries group by emp_no
+    """
+    select emp_no, max(from_date) date from salaries group by emp_no
+    """
     latest_salary_dates_df = salaries_df \
         .groupBy("emp_no") \
         .agg(max("from_date").alias("from_date"))

@@ -13,9 +13,6 @@ spark = SparkSession \
 
 sc = spark.sparkContext
 
-# TODO make sure MEMORY ONLY means deserialized
-# TODO in the case of MEMORY_AND_DISK cached DFs if they are stored on disk, can they be promoted to memory?
-
 # memory architecture
 # [code] caching & checkpointing
 def demo_caching():

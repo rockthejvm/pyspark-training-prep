@@ -31,6 +31,27 @@ carsRDD = cars_df.rdd  # converted to an RDD of rows = tuples with named fields
     - reduce(lambda x,y: associative operation)
     - groupBy(lambda from item to a key) - returns a grouped RDD
 """
+# filter
+even_numbers = numbersRDD.filter(lambda x: x % 2 == 0)
+tenx_numbers = numbersRDD.map(lambda x: x * 10)
+biggest_number = numbersRDD.max
+sum_numbers = numbersRDD.reduce(lambda x,y: x + y)
+even_odd_numbers = numbersRDD.groupBy(lambda x: x % 2)
+
+# group by key
+laptopsRDD = sc.parallelize([
+    ("Gaming", "Razer Blade"),
+    ("Work", "Lenovo ThinkPad"),
+    ("Gaming", "HP Omen"),
+    ("Work", "MacBook Pro"),
+    ("Studio", "Asus ProArt")
+])
+laptop_list_RDD = laptopsRDD.groupByKey()
+
+for (typ, res) in laptop_list_RDD.collect():
+    print(typ + ":")
+    print(list(res))
+
 
 """
 
@@ -50,7 +71,7 @@ moviesRDD = movies_df \
 
 # 3
 goodDramasRDD = moviesRDD.filter(lambda movie: (movie.genre == "Drama") & (movie.rating > 6))
-goodDramasRDD.take(5)
+# goodDramasRDD.take(5)
 
 # 4: RDDs of tuples
 # if you want to work with the Row data structure, use this import
@@ -71,15 +92,17 @@ def computeAvgRating(group):
 
 
 groupedByGenreRDD = moviesRDD.groupBy(lambda x: x.genre)
-avgRatingByGenreRDD = groupedByGenreRDD.map(lambda x: computeAvgRating(x)).collect()
+# avgRatingByGenreRDD = groupedByGenreRDD.map(lambda x: computeAvgRating(x)).collect()
 
 # test:
 # avgRatingByGenreRDD.collect() or
-avgRatingByGenreDF = spark.createDataFrame(avgRatingByGenreRDD)
+# avgRatingByGenreDF = spark.createDataFrame(avgRatingByGenreRDD)
 # show
 
 # the DF option
-avgRatingByGenreDF2 = spark.createDataFrame(moviesRDD).groupBy(col("genre")).avg("rating")
+avgRatingByGenreDF2 = spark.createDataFrame(moviesRDD) \
+    .groupBy(col("genre")) \
+    .avg("rating")
 # show
 
 """

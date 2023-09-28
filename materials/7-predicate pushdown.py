@@ -34,7 +34,8 @@ def demo_pushdown_on_group():
 
 
 # many data sources support pushdown filters out of the box
-# example: exercise 1 from the joins lesson ("show all employees and their max salary (all time) JUST FOR employees hired from jan 1, 1999")
+# example: exercise 1 from the joins lesson
+#   ("show all employees and their max salary (all time) JUST FOR employees hired from jan 1, 1999")
 def demo_pushdown_jdbc():
 
     driver = "org.postgresql.Driver"
@@ -63,7 +64,9 @@ def demo_pushdown_jdbc():
     departments_df = readTable("departments")
 
     # -- 1
-    maxSalariesPerEmpNoDF = salaries_df.groupBy("emp_no").agg(max("salary").alias("maxSalary"))
+    maxSalariesPerEmpNoDF = salaries_df\
+        .groupBy("emp_no")\
+        .agg(max("salary").alias("maxSalary"))
     employeesSalariesDF = employees_df.join(maxSalariesPerEmpNoDF, "emp_no")
     newEmployeesDF = employeesSalariesDF.filter("hire_date > '1999-01-01'")
     newEmployeesDF.explain(True)

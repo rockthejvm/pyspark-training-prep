@@ -76,7 +76,7 @@ movies_df = spark.read.json("../data/movies") \
 # UDAFs
 ############################################################
 
-# install pandas, pyarrow
+# !!!!!!!!! VERY IMPORTANT - install pandas, pyarrow before running this example !!!!!!!!!!
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 
 def demo_udaf():
