@@ -74,6 +74,22 @@ def demo_skew():
                           +- LocalTableScan [make#17, model#18, procSpeed#19, salePrice#20]
     """
 
+    """
+        # general technique: salting
+        add a new column of random numbers (1 - 100)
+        repartition the data into make, model AND salt
+    """
+    laptops2 = laptops.withColumn("salt", explode(sequence(lit(1), lit(100))))
+    offers2 = laptopOffers.withColumn("salt", round(rand() * 100))
+
+    result_df = (
+        laptops2
+            .join(offers2, ["make", "model", "salt"])
+            .filter(abs(laptops2.procSpeed - offers2.procSpeed) <= 0.1)
+            .groupBy("registration")
+            .agg(avg("salePrice").alias("averagePrice"))
+    )
+
 
 if __name__ == '__main__':
     demo_skew()
