@@ -163,6 +163,9 @@ def ex2():
 def ex3_aidar():
     # 3. Latest employee salary diff with max salary of dept
     # 3.1 Max sal of department
+    dept_emp_df = dept_emp_df.repartition("emp_no")
+    salaries_df = salaries_df.repartition("emp_no")
+
     max_dept_sal_df = (
         dept_emp_df.alias("dept_emp")
         .join(salaries_df.alias("sal"), "emp_no")
