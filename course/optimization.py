@@ -213,12 +213,13 @@ def demo_pushdown_jdbc():
     """
     # JDBC, parquet, CSV, Avro
     # all hash partitions are split into a finite number = spark.sql.shuffle.partitions by default 200
+    employees_df.repartition(100, col("emp_no"))
 
 
 # partition_(row) = hash(key of that row) % 200
 # [ (99% of rows => hash(row) = 1 , 1% => hash(row) = 2] [all rows => hash(row) = 2]
 
 if __name__ == '__main__':
-    demo_pushdown_jdbc()
+    read_table("employees").repartition(100, col("emp_no")).explain()
     sleep(999999)
 
