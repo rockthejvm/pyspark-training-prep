@@ -77,7 +77,18 @@ def basic_solution():
         .groupBy("registration") \
         .agg(avg("salePrice").alias("avgPrice"))
 
-    joined.show() # 2-3 mins
+    # joined.show() # 5 mins
+
+    # salting
+    laptops_2 = laptops.withColumn("batch", explode(sequence(lit(1), lit(100)))) # multiply the data 10x
+    offers_2 = offers.withColumn("batch", ceil(rand() * 100))
+    joined_2 = laptops_2\
+        .join(offers_2, ["make", "model", "batch"]) \
+        .filter(abs(offers_2.procSpeed - laptops_2.procSpeed) <= 0.1) \
+        .groupBy("registration") \
+        .agg(avg("salePrice").alias("avgPrice"))
+
+    joined_2.show() # 3.3 min
 
 
 if __name__ == '__main__':
