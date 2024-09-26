@@ -4,12 +4,15 @@
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
 
 # [1] add postgres jar
 spark = SparkSession \
     .builder \
     .master("local") \
     .config("spark.jars", "../jars/postgresql-42.2.19.jar") \
+    .config("spark.jars", "../jars/swissre_spark_udf_example_jar/swissre-spark-udf-example.jar") \
     .config("spark.sql.warehouse.dir", "../spark-warehouse") \
     .appName("Spark Essentials") \
     .getOrCreate()
@@ -104,5 +107,12 @@ def demo_with_numerical_df():
 
     df.groupBy('id').apply(subtract_mean).show()
 
+
+def demo_udf_from_scala():
+    df = spark.read.text("../data/text.txt")
+    spark.udf.registerJavaFunction("rtjvm_count", "com.rockthejvm.Occurrences", IntegerType())
+    df.selectExpr("value", "rtjvm_count(value)").show()
+
+
 if __name__ == '__main__':
-    demo_udaf()
+    demo_udf_from_scala()
