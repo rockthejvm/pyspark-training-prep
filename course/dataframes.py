@@ -3,13 +3,11 @@ import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 
-os.environ["JAVA_HOME"] = "C:/Program Files/Java/jdk-11"
-os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ["PATH"]
-
 spark = SparkSession \
     .builder \
     .master("local[*]") \
     .appName("Spark DataFrames") \
+    .config("spark.executor.memory", "4g") \
     .config("spark.jars", "../jars/postgresql-42.2.19.jar") \
     .getOrCreate()
 
@@ -22,6 +20,7 @@ print(os.environ['JAVA_HOME'])
 
 # transformation: DF -> DF changing DESCRIPTION => Spark has lazy computation
 # action: forces the evaluation of a DF
+# action (RDD) triggers a JOB
 
 def first_exercise():
     # Read the JSON file into a DataFrame
@@ -148,6 +147,8 @@ def demo_joins():
     # left-SEMI join = select all rows in the left table such that there is EXISTS a row on the right table satisfying the condition
     # select * from left where EXISTS (select * from right where ...)
 
+from time import sleep
 
 if __name__ == '__main__':
     demo_aggregations()
+    sleep(99999)
