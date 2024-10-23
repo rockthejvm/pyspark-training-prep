@@ -90,7 +90,60 @@ def exercise():
     print(f"time: {time() - start_time} seconds")
 
 
+def demo_bucketing():
+    large = spark.range(5000000).selectExpr("id * 5 as id").repartition(10)
+    small = spark.range(10000).selectExpr("id * 3 as id").repartition(3)
+    joined = large.join(small, "id")
+    joined.explain()
+    start_time = time()
+    joined.show() # 1.8s
+    print(f"Simple join: {time() - start_time} seconds")
+    """
+    == Physical Plan ==
+    AdaptiveSparkPlan isFinalPlan=false
+    +- Project [id#2L]
+       +- SortMergeJoin [id#2L], [id#6L], Inner
+          :- Sort [id#2L ASC NULLS FIRST], false, 0
+          :  +- Exchange hashpartitioning(id#2L, 200), ENSURE_REQUIREMENTS, [plan_id=33]
+          :     +- Exchange RoundRobinPartitioning(10), REPARTITION_BY_NUM, [plan_id=25]
+          :        +- Project [(id#0L * 5) AS id#2L]
+          :           +- Range (0, 5000000, step=1, splits=16)
+          +- Sort [id#6L ASC NULLS FIRST], false, 0
+             +- Exchange hashpartitioning(id#6L, 200), ENSURE_REQUIREMENTS, [plan_id=34]
+                +- Exchange RoundRobinPartitioning(3), REPARTITION_BY_NUM, [plan_id=28]
+                   +- Project [(id#4L * 3) AS id#6L]
+                      +- Range (0, 10000, step=1, splits=16)
+    """
+
+    large.write.bucketBy(4, "id").sortBy("id").mode("overwrite").saveAsTable("bucketed_large")
+    small.write.bucketBy(4, "id").sortBy("id").mode("overwrite").saveAsTable("bucketed_small")
+
+    bucketed_large = spark.table("bucketed_large")
+    bucketed_small = spark.table("bucketed_small")
+    bucketed_join = bucketed_large.join(bucketed_small, "id")
+    bucketed_join.explain()
+    start_time = time()
+    bucketed_join.show() # 0.3 seconds!
+    print(f"Bucketed join: {time() - start_time} seconds")
+
+    """
+    == Physical Plan ==
+    AdaptiveSparkPlan isFinalPlan=false
+    +- Project [id#16L]
+       +- SortMergeJoin [id#16L], [id#18L], Inner
+          :- Sort [id#16L ASC NULLS FIRST], false, 0
+          :  +- Filter isnotnull(id#16L)
+          :     +- FileScan parquet spark_catalog.default.bucketed_large[id#16L] Batched: true, Bucketed: true, DataFilters: [isnotnull(id#16L)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/Users/daniel/dev/rockthejvm/trainings/swissre-spark-optimization..., PartitionFilters: [], PushedFilters: [IsNotNull(id)], ReadSchema: struct<id:bigint>, SelectedBucketsCount: 4 out of 4
+          +- Sort [id#18L ASC NULLS FIRST], false, 0
+             +- Filter isnotnull(id#18L)
+                +- FileScan parquet spark_catalog.default.bucketed_small[id#18L] Batched: true, Bucketed: true, DataFilters: [isnotnull(id#18L)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/Users/daniel/dev/rockthejvm/trainings/swissre-spark-optimization..., PartitionFilters: [], PushedFilters: [IsNotNull(id)], ReadSchema: struct<id:bigint>, SelectedBucketsCount: 4 out of 4
+    """
+
+    # bucketBy + saveAsTable() into the Spark warehouse (persistent!)
+    #   can use a finite number of buckets
+    # partitionBy + save() into your regular persistent storage
+    #   will create mini-directories for every unique value of your columns
 
 if __name__ == '__main__':
-    exercise()
-    sleep(9999)
+    movies_df = spark.read.json("../data/movies")
+    movies_df.write.partitionBy("Major_Genre", "Director").save("../data/movies-partitioned")
