@@ -9,6 +9,7 @@ os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 spark = SparkSession \
     .builder \
     .master("local[*]") \
+    .config("spark.driver.memory", "4g") \
     .config("spark.sql.autoBroadcastJoinThreshold", "-1") \
     .appName("Partitioning Problems") \
     .getOrCreate()
@@ -61,9 +62,33 @@ def exercise():
     # the code that you can edit
     wide_table = add_columns(table, 30)
     join1 = wide_table.join(narrow_table, "id")
+    start_time = time()
+    join1.explain()
     join1.show() # 5 seconds
+    print(f"Regular job: {time() - start_time} seconds")
 
     # can you optimize it?
+    # Akos - broadcasting
+    wide_table = add_columns(table, 30)
+    join2 = wide_table.join(broadcast(narrow_table), "id")
+    start_time = time()
+    join2.show()  # 2x perf
+    print(f"Broadcast job: {time() - start_time} seconds")
+
+    # Udo solution
+    # lesson: partition EARLY by the right partitioner before your big computations!
+    start_time = time()
+    table = table.repartition(col("id"))
+    narrow_table = narrow_table.repartition(col("id"))
+
+    # happens AFTER the repartition
+    wide_table = add_columns(table, 30)
+
+    join3 = wide_table.join(narrow_table, "id")
+    join3.explain()
+    join3.show() # 0.5s!
+    print(f"time: {time() - start_time} seconds")
+
 
 
 if __name__ == '__main__':
