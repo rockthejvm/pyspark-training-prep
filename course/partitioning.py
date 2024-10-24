@@ -144,6 +144,9 @@ def demo_bucketing():
     # partitionBy + save() into your regular persistent storage
     #   will create mini-directories for every unique value of your columns
 
-if __name__ == '__main__':
+def partitioned_storage():
     movies_df = spark.read.json("../data/movies")
     movies_df.write.partitionBy("Major_Genre", "Director").save("../data/movies-partitioned")
+
+if __name__ == '__main__':
+    pass
