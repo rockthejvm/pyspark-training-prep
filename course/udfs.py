@@ -11,6 +11,7 @@ spark = SparkSession \
     .builder \
     .master("local[*]") \
     .config("spark.jars", "../jars/postgresql-42.2.19.jar")  \
+    .config("spark.jars", "../jars/swissre_spark_udf_example_jar/swissre-spark-udf-example.jar") \
     .appName("UDFs") \
     .getOrCreate()
 
@@ -42,6 +43,51 @@ def demo_udaf():
     diff_vs_mean_df = movies_df.groupby("Major_Genre").apply(subtract_mean)
     diff_vs_mean_df.show()
 
+# call Scala UDF from PySpark
+"""
+    Original Scala code:
+    package com.rockthejvm
+
+    import org.apache.spark.sql.api.java.UDF1
+    
+    import scala.annotation.tailrec
+    
+    // returns the number of occurrences of the word "rockthejvm" in a value
+    class Occurrences extends UDF1[String, Int] {
+      val token = "rockthejvm"
+    
+      override def call(value: String): Int = {
+        @tailrec
+        def loop(remainder: String, acc: Int): Int = {
+          val index = remainder.indexOf(token)
+          if (index == -1) acc
+          else loop(remainder.substring(index + token.length), acc + 1)
+        }
+    
+        loop(value, 0)
+      }
+    }
+    
+    object Test {
+      def main(args: Array[String]): Unit = {
+    
+        val occ = new Occurrences
+        println(occ.call("This is rockthejvm, go to rockthejvm.com for the ultimate courses on Apache Spark."))
+      }
+    }
+
+    - in the IDE, build an artifact (JAR)
+    - copy it here under ../jars
+"""
+def demo_udf_from_scala():
+    df = spark.read.text("../data/rockthejvm.txt")
+    # register the UDF by referring to the JVM class name
+    spark.udf.registerJavaFunction("rockthejvm_count", "com.rockthejvm.Occurrences", IntegerType())
+    # run the UDF
+    new_df = df.selectExpr("value", "rockthejvm_count(value)")
+
+    df.show()
+    new_df.show()
 
 if __name__ == '__main__':
-    demo_udaf()
+    demo_udf_from_scala()

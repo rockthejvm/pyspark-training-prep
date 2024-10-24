@@ -1,0 +1,2 @@
+This is rockthejvm, go to rockthejvm.com for the ultimate courses on Apache Spark.
+Rock the JVM's website is rockthejvm.com, you can find me @rockthejvm on Twitter, and on YouTube at youtube.com/rockthejvm
