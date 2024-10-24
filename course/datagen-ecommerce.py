@@ -2,6 +2,10 @@ import random
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, rand, when
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
+import os, sys
+
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 
 # Initialize Spark Session
 spark = SparkSession.builder \
