@@ -85,8 +85,8 @@ n_categories = 100
 
 products_df = generate_products(n_products)
 categories_df = generate_categories(n_categories)
-customers_df = generate_customers(n_customers, power_law_factor=0.7)
-orders_df = generate_orders(n_orders, n_customers, n_products, power_law_factor=0.1)
+customers_df = generate_customers(n_customers, power_law_factor=0.9)
+orders_df = generate_orders(n_orders, n_customers, n_products, power_law_factor=0.9)
 
 # Save datasets to disk for later use
 orders_df.write.csv("../data/shopping/orders", mode="overwrite", header=True)
