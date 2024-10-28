@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-import pyspark.sql.functions as F
+from pyspark.sql.functions import *
 
 spark = SparkSession \
     .builder \
@@ -22,7 +22,7 @@ def demo_transformations():
         - weight of the car (in kg = lbs/2.2)
     """
     df = spark.read.json("../data/cars")  # DF reader
-    df2 = df.select(F.upper(df.Name), df.Weight_in_lbs, (df.Weight_in_lbs/2.2).alias("Weight_in_kgs"))
+    df2 = df.select(upper(df.Name), df.Weight_in_lbs, (df.Weight_in_lbs/2.2).alias("Weight_in_kgs"))
     #                     ^^^^^^^ column object
     #               ^^^^^^^^^^^^^ column object
     df2.printSchema()
@@ -50,15 +50,32 @@ def read_movies_df():
         .option("dbtable", "public.movies") \
         .save()
 
-"""
-    Exercise - read the movies DF and
-    - sum up all the profits of all the movies
-    - count how many distinct directors
-    - mean/stddev for US gross revenue
-    - average IMDB rating and average US gross revenue PER Director
-"""
+def get_stats():
+    """
+        Exercise - read the movies DF and
+            - sum up all the profits of all the movies
+            - count how many distinct directors
+            - mean/stddev for US gross revenue
+            - average IMDB rating and average US gross revenue PER Director
+    """
+    df = spark.read.json('../data/movies')
+    df.printSchema()
+
+    # DF-wide aggregations
+    stats_df = df.select(
+        (sum('US_Gross') + sum('Worldwide_Gross')).alias('profits_sum'),
+        countDistinct('Director').alias('nunique_directors'),
+        mean('US_Gross').alias('us_gross_mean'),
+        std('US_Gross').alias('us_gross_std'),
+    )
+    stats_df.show()
+
+    # grouped aggregations
+    avg_per_dir_df = df.groupBy('Director').agg({'IMDB_Rating':'avg', 'US_Gross':'avg'})
+    avg_per_dir_df_v2 = df.groupBy('Director').agg(avg('IMDB_Rating'), avg('US_Gross'))
+    avg_per_dir_df.show()
 
 if __name__ == '__main__':
-    read_movies_df()
+    get_stats()
 
 # TODO - what's an RDD
