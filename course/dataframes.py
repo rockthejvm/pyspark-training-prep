@@ -75,7 +75,68 @@ def get_stats():
     avg_per_dir_df_v2 = df.groupBy('Director').agg(avg('IMDB_Rating'), avg('US_Gross'))
     avg_per_dir_df.show()
 
+def read_table(table_name):
+    return spark.read \
+        .format("jdbc") \
+        .option("driver", "org.postgresql.Driver") \
+        .option("url", "jdbc:postgresql://localhost:5432/rtjvm") \
+        .option("user", "docker") \
+        .option("password", "docker") \
+        .option("dbtable", "public." + table_name) \
+        .load()
+""" 
+    joins exercise - read the tables in Postgres as DFs
+    - show all employees and their max salary (all time)
+    - show all employees who were never managers
+    - for each employee, find the difference between their own latest salary and the max salary (all time) of their department
+"""
+def show_employees():
+    df_employees = read_table("employees")
+    df_salaries = read_table("salaries")
+    df_managers = read_table("dept_manager")
+    df_dept_emp = read_table("dept_emp")
+
+    # 1
+    df_emp_sal = ((df_employees
+                   .join(df_salaries, on="emp_no", how="left"))
+                  .groupBy("emp_no")
+                  .agg(max("salary").alias("max_salary")))
+    df_emp_sal.show()
+
+    # 2
+    df_emp_man = (df_employees
+                  .join(df_managers, on="emp_no", how="left")).filter("dept_no is NULL").distinct()
+    # LEFT ANTI join = select * from left where NOT EXISTS (select * in right where ...)
+    df_emp_man_v2 = df_emp_man.join(df_managers, "emp_no", "left_anti") # left anti join is faster than full/left outer + filter
+    # opposite of ANTI join = SEMI join
+    # select * from left where EXISTS (select * from right where ...) - faster than a full outer join + a filter
+
+    df_emp_man.show()
+
+def calc_joins_jakub_ex3():
+    emp_df = read_table('employees')
+    sal_df = read_table('salaries')
+    dept_man_df = read_table('dept_manager')
+    dept_emp = read_table('dept_emp')
+
+    # max salary of the departments
+    dept_emp_sal = dept_emp.join(sal_df, on='emp_no')
+    dept_emp_sal = dept_emp_sal.groupBy('dept_no').agg(max('salary').alias('max_dept_salary'))
+    # dept_no , max_dept_salary
+
+    # latest salaries for every employee
+    latest_salaries = sal_df.groupBy('emp_no').agg(max('from_date').alias('from_date'))
+    latest_salaries = sal_df.join(latest_salaries, on=['emp_no', 'from_date'], how='left').select("emp_no", "salary")
+    # emp_no, salary
+
+    diff_in_salary = latest_salaries \
+        .join(dept_emp, "emp_no") \
+        .join(dept_emp_sal, "dept_no") \
+        .selectExpr("emp_no", "dept_no", "max_dept_salary - salary")
+
+    diff_in_salary.show()
+
 if __name__ == '__main__':
-    get_stats()
+    calc_joins_jakub_ex3()
 
 # TODO - what's an RDD
