@@ -27,5 +27,36 @@ def demo_udf():
 # user-defined aggregate function (UDAF)
 # pandas, pyarrow
 
+# for every movie, show the diff between their IMDB rating and the avg rating of their genre
+def demo_udaf():
+    # step 1 - define the function working on Pandas
+    def diff_vs_mean(pandas_df):
+        return pandas_df.assign(Rating_Diff=pandas_df.IMDB_Rating - pandas_df.IMDB_Rating.mean())
+
+    # step 2 - prepare your DF (include the output column)
+    movies_df = spark.read.json("../data/movies") \
+        .filter(col("Major_Genre").isNotNull() & col("IMDB_Rating").isNotNull()) \
+        .select("Title", "Major_Genre", "IMDB_Rating")\
+        .withColumn("Rating_Diff", lit(0))
+
+    # step 3 - register the UDAF with pandas_udf
+    diff_mean_udaf = pandas_udf(diff_vs_mean, movies_df.schema, PandasUDFType.GROUPED_MAP)
+    # step 4 - do your thing
+    movies_with_diff_df = movies_df.groupBy("Major_Genre").apply(diff_mean_udaf)
+    movies_with_diff_df.show()
+
+# user-defined table functions, aka UDTF
+# example: a function that for every number, computes the square
+@udtf(returnType="num: int, squared: int")
+class SquareNumbers:
+    def eval(self, start, end):
+        for num in range(start, end + 1):
+            yield (num, num * num)
+
+def demo_udtf():
+    # square_udtf = udtf(SquareNumbers, returnType="num: int, squared: int")
+    df = SquareNumbers(lit(1), lit(100)) # returns a DataFrame
+    df.show()
+
 if __name__ == '__main__':
-    demo_udf()
+    demo_udtf()
