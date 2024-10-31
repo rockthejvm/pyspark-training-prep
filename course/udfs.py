@@ -10,6 +10,7 @@ spark = SparkSession \
     .builder \
     .master("local[*]") \
     .appName("UDFs") \
+    .config("spark.jars", "../jars/swissre_spark_udf_example_jar/swissre-spark-udf-example.jar") \
     .getOrCreate()
 
 # your own DF function (user-defined function aka UDF)
@@ -58,5 +59,12 @@ def demo_udtf():
     df = SquareNumbers(lit(1), lit(100)) # returns a DataFrame
     df.show()
 
+# refer to a Scala UDF from Python
+def demo_udf_from_scala():
+    df = spark.read.text("../data/Rockthejvm_test.txt") # a table with a single col "value"
+    spark.udf.registerJavaFunction("rtjvm_count", "com.rockthejvm.Occurrences", IntegerType())
+    processed_df = df.selectExpr("value", "rtjvm_count(value)")
+    processed_df.show()
+
 if __name__ == '__main__':
-    demo_udtf()
+    demo_udf_from_scala()
